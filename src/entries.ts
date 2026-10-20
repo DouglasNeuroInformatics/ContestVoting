@@ -116,6 +116,18 @@ export function saveEntry(
   });
 }
 
+export type GalleryEntry = { id: number; name: string; caption: string; photos: StoredPhoto[] };
+
+/** Approved entries only, with their photos. Never exposes the owner. */
+export function listApproved(db: Db): GalleryEntry[] {
+  const rows = db.prepare("SELECT id, name, caption FROM entries WHERE status = 'approved'").all() as {
+    id: number;
+    name: string;
+    caption: string;
+  }[];
+  return rows.map((r) => ({ ...r, photos: photosOf(db, r.id) })).filter((e) => e.photos.length > 0);
+}
+
 /** Hard delete: entry, its photo rows and its votes (FK cascade). Returns photos to delete from disk. */
 export function deleteEntry(db: Db, id: number): StoredPhoto[] {
   return tx(db, () => {

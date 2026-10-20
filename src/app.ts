@@ -22,10 +22,11 @@ import { ta, type AdminError, type AdminNotice } from "./adminI18n.ts";
 import { entriesPage, queuePage, settingsPage, votesPage, type Flash } from "./adminViews.ts";
 import { deleteSession, getSessionUser, requestCode, verifyCode, type AuthDeps, type User } from "./auth.ts";
 import { getSetting, setSetting } from "./db.ts";
-import { deleteEntry, getEntryByOwner, photoOwner, saveEntry, validateFields } from "./entries.ts";
+import { deleteEntry, getEntryByOwner, listApproved, photoOwner, saveEntry, validateFields } from "./entries.ts";
 import { detectLang, errorText, formatDateTime, t, type ErrorKey, type Lang } from "./i18n.ts";
 import { computePhase, isPhase, type Phase } from "./phase.ts";
 import { deletePhotoFiles, isPhotoName, MAX_PHOTO_BYTES, MAX_PHOTOS, processPhoto, storePhoto } from "./photos.ts";
+import { seededShuffle } from "./shuffle.ts";
 import { entryPage, homePage, landingPage, layout, loginPage, verifyPage } from "./views.ts";
 
 type Env = {
@@ -107,7 +108,11 @@ export function createApp(deps: AuthDeps) {
     const phase = phaseNow();
     if (phase === "landing") return render(c, landingPage(lang, formatDateTime(cfg.openAt, lang, cfg.tz)));
     const text = { open: s.phaseOpen, voting: s.phaseVoting, closed: s.phaseClosed, results: s.phaseResults }[phase];
-    return render(c, homePage(lang, text, c.get("user"), phase === "open" || phase === "voting"));
+    const entries = seededShuffle(listApproved(db), c.get("deviceId"));
+    return render(
+      c,
+      homePage(lang, { phaseText: text, user: c.get("user"), showEntryLink: phase === "open" || phase === "voting", entries }),
+    );
   });
 
   app.get("/login", (c) => (c.get("user") ? c.redirect("/") : render(c, loginPage(c.get("lang")))));

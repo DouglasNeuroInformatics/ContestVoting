@@ -1,7 +1,7 @@
 import { html } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import type { User } from "./auth.ts";
-import type { Entry } from "./entries.ts";
+import type { Entry, GalleryEntry } from "./entries.ts";
 import { t, type Lang } from "./i18n.ts";
 
 type Body = HtmlEscapedString | Promise<HtmlEscapedString>;
@@ -45,6 +45,10 @@ table { width:100%; border-collapse:collapse; font-size:.9rem; display:block; ov
 td, th { text-align:left; padding:6px 8px; border-bottom:1px solid #3a2d20; vertical-align:top; }
 .flag { display:inline-block; background:#4a3b12; color:#ffd77a; border-radius:6px; padding:0 6px; font-size:.8rem; }
 button.small { width:auto; margin:0; padding:4px 10px; font-size:.85rem; }
+.gallery { display:grid; gap:16px; }
+.card { background:var(--panel); border-radius:12px; padding:12px; }
+.card img.cover { width:100%; max-height:70vh; object-fit:cover; border-radius:8px; display:block; }
+.card h2 { margin:12px 0 4px; }
 footer { color:var(--muted); font-size:.85rem; text-align:center; margin:40px 0 16px; }
 `;
 
@@ -87,16 +91,30 @@ export function landingPage(lang: Lang, opensAt: string): Body {
 </div>`;
 }
 
-export function homePage(lang: Lang, phaseText: string, user: User | null, showEntryLink: boolean): Body {
+export function homePage(
+  lang: Lang,
+  opts: { phaseText: string; user: User | null; showEntryLink: boolean; entries: GalleryEntry[] },
+): Body {
   const s = t(lang);
   return html`<h1>🎃 ${s.title}</h1>
 <div class="panel">
-  <p><strong>${phaseText}</strong></p>
-  <p class="help">${s.comingSoon}</p>
-  ${user
-    ? showEntryLink ? html`<p><a href="/me/entry">${s.myEntry}</a></p>` : ""
+  <p><strong>${opts.phaseText}</strong></p>
+  ${opts.user
+    ? opts.showEntryLink ? html`<p><a href="/me/entry">${s.myEntry}</a></p>` : ""
     : html`<p><a href="/login">${s.login}</a></p>`}
-</div>`;
+</div>
+${opts.entries.length === 0
+    ? html`<p class="help">${s.galleryEmpty}</p>`
+    : html`<div class="gallery">${opts.entries.map(
+        (e) => html`<article class="card" id="e${e.id}">
+  <a href="/photos/${e.photos[0].file}"><img class="cover" src="/photos/${e.photos[0].thumb}" alt="${e.name}"></a>
+  ${e.photos.length > 1
+    ? html`<div class="thumbs">${e.photos.slice(1).map((p) => html`<a href="/photos/${p.file}"><img src="/photos/${p.thumb}" alt=""></a>`)}</div>`
+    : ""}
+  <h2>${e.name}</h2>
+  ${e.caption ? html`<p>${e.caption}</p>` : ""}
+</article>`,
+      )}</div>`}`;
 }
 
 export type EntryFormValues = { name: string; caption: string };
