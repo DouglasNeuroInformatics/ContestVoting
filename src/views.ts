@@ -1,4 +1,4 @@
-import { html } from "hono/html";
+import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import type { User } from "./auth.ts";
 import type { Results } from "./admin.ts";
@@ -86,13 +86,21 @@ ${body}
 </html>`;
 }
 
-export function landingPage(lang: Lang, opensAt: string): Body {
+/** `rulesHtml` comes from renderMarkdown(), which escapes its input. */
+export function landingPage(lang: Lang, opensAt: string, rulesHtml: string): Body {
   const s = t(lang);
   return html`<h1>🎃 ${s.title}</h1>
 <div class="panel">
   <p>${s.landingLead} <strong>${opensAt}</strong>.</p>
-  <p class="help">${s.landingSoon}</p>
-</div>`;
+</div>
+${rulesHtml ? html`<div class="panel rules">${raw(rulesHtml)}</div>` : ""}`;
+}
+
+export function rulesPage(lang: Lang, rulesHtml: string): Body {
+  const s = t(lang);
+  return html`<h1>${s.rules}</h1>
+<div class="panel rules">${raw(rulesHtml)}</div>
+<p><a href="/">← ${s.title}</a></p>`;
 }
 
 export function homePage(
@@ -131,6 +139,7 @@ ${opts.results
   ${opts.user
     ? opts.showEntryLink ? html`<p><a href="/me/entry">${s.myEntry}</a></p>` : ""
     : html`${opts.votingOpen ? html`<p>${s.loginToVote}</p>` : ""}<p><a href="/login">${s.login}</a></p>`}
+  <p><a href="/rules">${s.rules}</a></p>
 </div>
 ${opts.entries.length === 0
     ? html`<p class="help">${s.galleryEmpty}</p>`

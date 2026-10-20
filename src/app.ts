@@ -26,9 +26,10 @@ import { deleteEntry, getEntryByOwner, listApproved, photoOwner, saveEntry, vali
 import { detectLang, errorText, formatDateTime, t, type ErrorKey, type Lang } from "./i18n.ts";
 import { computePhase, isPhase, type Phase } from "./phase.ts";
 import { deletePhotoFiles, isPhotoName, MAX_PHOTO_BYTES, MAX_PHOTOS, processPhoto, storePhoto } from "./photos.ts";
+import { loadRules } from "./content.ts";
 import { seededShuffle } from "./shuffle.ts";
 import { castVote, myVote, votingOpen } from "./votes.ts";
-import { entryPage, homePage, landingPage, layout, loginPage, verifyPage } from "./views.ts";
+import { entryPage, homePage, landingPage, layout, loginPage, rulesPage, verifyPage } from "./views.ts";
 
 type Env = {
   Variables: { lang: Lang; user: User | null; deviceId: string; ip: string };
@@ -107,7 +108,9 @@ export function createApp(deps: AuthDeps) {
     const lang = c.get("lang");
     const s = t(lang);
     const phase = phaseNow();
-    if (phase === "landing") return render(c, landingPage(lang, formatDateTime(cfg.openAt, lang, cfg.tz)));
+    if (phase === "landing") {
+      return render(c, landingPage(lang, formatDateTime(cfg.openAt, lang, cfg.tz), loadRules(cfg.contentDir, lang)));
+    }
     const text = { open: s.phaseOpen, voting: s.phaseVoting, closed: s.phaseClosed, results: s.phaseResults }[phase];
     const user = c.get("user");
     const entries = seededShuffle(listApproved(db), c.get("deviceId"));
@@ -141,6 +144,8 @@ export function createApp(deps: AuthDeps) {
     });
     return c.redirect(res.ok ? `/?voted=1#e${entryId}` : `/?e=${res.reason}`);
   });
+
+  app.get("/rules", (c) => render(c, rulesPage(c.get("lang"), loadRules(cfg.contentDir, c.get("lang")))));
 
   app.get("/login", (c) => (c.get("user") ? c.redirect("/") : render(c, loginPage(c.get("lang")))));
 

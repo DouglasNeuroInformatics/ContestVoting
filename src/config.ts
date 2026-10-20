@@ -18,6 +18,7 @@ export type Config = {
   mailFrom: string;
   sessionSecret: string;
   dataDir: string;
+  contentDir: string;
   port: number;
   trustProxy: boolean;
   ipSendLimitPerHour: number;
@@ -103,6 +104,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     mailFrom: env.MAIL_FROM?.trim() || "Halloween DRC <noreply@mail.douglasneuroinformatics.ca>",
     sessionSecret,
     dataDir: env.DATA_DIR?.trim() || "./data",
+    contentDir: env.CONTENT_DIR?.trim() || "./content",
     port: Number(env.PORT ?? 3000),
     trustProxy: env.TRUST_PROXY === "1",
     ipSendLimitPerHour: Number(env.IP_SEND_LIMIT_PER_HOUR ?? 100),
