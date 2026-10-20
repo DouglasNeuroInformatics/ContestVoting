@@ -1,0 +1,179 @@
+export type Lang = "fr" | "en";
+
+/** Cookie wins; otherwise the first fr/en in Accept-Language; French fallback. */
+export function detectLang(cookie: string | undefined, acceptLanguage: string | undefined): Lang {
+  if (cookie === "fr" || cookie === "en") return cookie;
+  const ranked = (acceptLanguage ?? "")
+    .split(",")
+    .map((part) => {
+      const [tag, ...params] = part.trim().toLowerCase().split(";");
+      const q = params.map((p) => p.trim()).find((p) => p.startsWith("q="));
+      return { base: tag.split("-")[0], q: q ? Number(q.slice(2)) : 1 };
+    })
+    .filter((x) => x.base === "fr" || x.base === "en")
+    .sort((a, b) => b.q - a.q);
+  return (ranked[0]?.base as Lang | undefined) ?? "fr";
+}
+
+const strings = {
+  fr: {
+    title: "Concours de costumes d'Halloween du CRD",
+    poweredBy: "Propulsé par le DNP",
+    switchLang: "English",
+    login: "Se connecter",
+    logout: "Se déconnecter",
+    loggedInAs: "Connecté·e :",
+    emailLabel: "Votre courriel institutionnel",
+    emailHelp: "Nous vous enverrons un code à 6 chiffres.",
+    sendCode: "Recevoir mon code",
+    codeLabel: "Code à 6 chiffres",
+    codeSentTo: "Code envoyé à",
+    codeHelp: "Vérifiez aussi vos courriels indésirables. Le code expire dans 10 minutes.",
+    verify: "Valider",
+    otherEmail: "Utiliser un autre courriel",
+    resend: "Renvoyer le code",
+    landingLead: "Le vote et les inscriptions ouvrent le",
+    landingSoon: "Les règlements arrivent bientôt.",
+    phaseOpen: "Inscriptions et vote ouverts !",
+    phaseVoting: "Inscriptions fermées — le vote continue.",
+    phaseClosed: "Le vote est terminé. Résultats sous peu !",
+    phaseResults: "Les résultats sont publiés !",
+    comingSoon: "Galerie et vote : bientôt ici.",
+    myEntry: "Mon inscription",
+    loginToSubmit: "Connectez-vous pour inscrire votre costume.",
+    status: { pending: "En attente d'approbation", approved: "Approuvée — visible dans la galerie", rejected: "Refusée" },
+    rejectReason: "Raison :",
+    rejectedHelp: "Vous pouvez modifier votre inscription et la soumettre de nouveau.",
+    nameLabel: "Nom du costume ou de l'équipe",
+    captionLabel: "Description (facultatif)",
+    photosLabel: "Photos (1 à 3)",
+    photosHelpNew: "JPEG, PNG ou WebP, 15 Mo max. chacune.",
+    photosHelpEdit: "Laissez vide pour garder vos photos actuelles. De nouvelles photos remplacent toutes les anciennes.",
+    consentLabel: "J'accepte que ces photos soient affichées publiquement sur ce site pendant le concours. Toutes les personnes sur les photos sont d'accord. Les photos seront supprimées au plus tard 30 jours après le concours.",
+    submit: "Soumettre mon inscription",
+    saveChanges: "Enregistrer les modifications",
+    editNote: "Toute modification remet votre inscription en attente d'approbation.",
+    withdrawTitle: "Retirer mon inscription",
+    withdrawConfirm: "Je comprends que mon inscription, mes photos et les votes reçus seront supprimés définitivement.",
+    withdraw: "Retirer",
+    submissionsClosed: "Les inscriptions sont fermées.",
+    saved: "Inscription enregistrée. Elle apparaîtra dans la galerie une fois approuvée.",
+    withdrawn: "Votre inscription a été retirée.",
+    err: {
+      invalid_email: "Ce courriel ne semble pas valide.",
+      domain: "Veuillez utiliser votre courriel institutionnel (McGill, Douglas ou CIUSSS).",
+      not_open: "La connexion ouvre au début du concours.",
+      cooldown: "Patientez {s} s avant de redemander un code.",
+      email_limit: "Trop de codes demandés pour ce courriel. Réessayez dans une heure.",
+      ip_limit: "Trop de demandes depuis ce réseau. Réessayez plus tard.",
+      send_failed: "L'envoi du courriel a échoué. Réessayez dans un instant.",
+      no_code: "Aucun code actif pour ce courriel. Demandez-en un nouveau.",
+      expired: "Ce code a expiré. Demandez-en un nouveau.",
+      too_many: "Trop d'essais. Demandez un nouveau code.",
+      wrong: "Code incorrect. Essais restants : {n}.",
+      origin: "Requête refusée. Rechargez la page et réessayez.",
+      name_required: "Donnez un nom à votre costume.",
+      name_too_long: "Le nom doit faire 60 caractères ou moins.",
+      caption_too_long: "La description doit faire 200 caractères ou moins.",
+      consent_required: "Cochez la case de consentement.",
+      photos_required: "Ajoutez au moins une photo.",
+      too_many_photos: "Trois photos maximum.",
+      too_big: "Chaque photo doit faire 15 Mo ou moins.",
+      unsupported: "Format non pris en charge. Utilisez JPEG, PNG ou WebP.",
+      heic: "Les photos HEIC ne sont pas prises en charge. Sur iPhone, choisissez la photo depuis la Photothèque (elle sera convertie en JPEG) ou envoyez une capture d'écran.",
+      submissions_closed: "Les inscriptions sont fermées.",
+      withdraw_closed: "Il n'est plus possible de retirer une inscription.",
+      withdraw_confirm: "Cochez la case pour confirmer le retrait.",
+    },
+  },
+  en: {
+    title: "DRC Halloween Costume Contest",
+    poweredBy: "Brought to you by the DNP",
+    switchLang: "Français",
+    login: "Log in",
+    logout: "Log out",
+    loggedInAs: "Logged in:",
+    emailLabel: "Your institutional email",
+    emailHelp: "We'll send you a 6-digit code.",
+    sendCode: "Send my code",
+    codeLabel: "6-digit code",
+    codeSentTo: "Code sent to",
+    codeHelp: "Check your junk folder too. The code expires in 10 minutes.",
+    verify: "Verify",
+    otherEmail: "Use a different email",
+    resend: "Resend code",
+    landingLead: "Submissions and voting open on",
+    landingSoon: "Rules coming soon.",
+    phaseOpen: "Submissions and voting are open!",
+    phaseVoting: "Submissions closed — voting continues.",
+    phaseClosed: "Voting has closed. Results soon!",
+    phaseResults: "Results are out!",
+    comingSoon: "Gallery and voting: coming soon here.",
+    myEntry: "My entry",
+    loginToSubmit: "Log in to enter your costume.",
+    status: { pending: "Waiting for approval", approved: "Approved — shown in the gallery", rejected: "Rejected" },
+    rejectReason: "Reason:",
+    rejectedHelp: "You can edit your entry and submit it again.",
+    nameLabel: "Costume or team name",
+    captionLabel: "Caption (optional)",
+    photosLabel: "Photos (1 to 3)",
+    photosHelpNew: "JPEG, PNG or WebP, 15 MB max each.",
+    photosHelpEdit: "Leave empty to keep your current photos. New photos replace all the old ones.",
+    consentLabel: "I agree that these photos are shown publicly on this site during the contest. Everyone in the photos agrees. Photos are deleted within 30 days after the contest.",
+    submit: "Submit my entry",
+    saveChanges: "Save changes",
+    editNote: "Any change puts your entry back in the approval queue.",
+    withdrawTitle: "Withdraw my entry",
+    withdrawConfirm: "I understand that my entry, my photos and the votes it received will be deleted for good.",
+    withdraw: "Withdraw",
+    submissionsClosed: "Submissions are closed.",
+    saved: "Entry saved. It will appear in the gallery once approved.",
+    withdrawn: "Your entry has been withdrawn.",
+    err: {
+      invalid_email: "That email doesn't look valid.",
+      domain: "Please use your institutional email (McGill, Douglas or CIUSSS).",
+      not_open: "Login opens when the contest starts.",
+      cooldown: "Wait {s} s before asking for another code.",
+      email_limit: "Too many codes requested for this email. Try again in an hour.",
+      ip_limit: "Too many requests from this network. Try again later.",
+      send_failed: "Sending the email failed. Try again in a moment.",
+      no_code: "No active code for this email. Ask for a new one.",
+      expired: "That code has expired. Ask for a new one.",
+      too_many: "Too many attempts. Ask for a new code.",
+      wrong: "Wrong code. Attempts left: {n}.",
+      origin: "Request refused. Reload the page and try again.",
+      name_required: "Give your costume a name.",
+      name_too_long: "The name must be 60 characters or fewer.",
+      caption_too_long: "The caption must be 200 characters or fewer.",
+      consent_required: "Tick the consent box.",
+      photos_required: "Add at least one photo.",
+      too_many_photos: "Three photos at most.",
+      too_big: "Each photo must be 15 MB or less.",
+      unsupported: "Unsupported format. Use JPEG, PNG or WebP.",
+      heic: "HEIC photos aren't supported. On iPhone, pick the photo from the Photo Library (it gets converted to JPEG) or send a screenshot.",
+      submissions_closed: "Submissions are closed.",
+      withdraw_closed: "Entries can no longer be withdrawn.",
+      withdraw_confirm: "Tick the box to confirm.",
+    },
+  },
+} as const;
+
+export type Strings = (typeof strings)[Lang];
+export type ErrorKey = keyof Strings["err"];
+
+export const t = (lang: Lang): Strings => strings[lang];
+
+export function errorText(lang: Lang, key: ErrorKey, vars: Record<string, string | number> = {}): string {
+  return strings[lang].err[key].replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ""));
+}
+
+export function formatDateTime(d: Date, lang: Lang, tz: string): string {
+  return new Intl.DateTimeFormat(lang === "fr" ? "fr-CA" : "en-CA", {
+    timeZone: tz,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(d);
+}

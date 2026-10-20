@@ -1,0 +1,7 @@
+halloween2026.douglasneuroinformatics.ca {
+	request_body {
+		max_size 50MB
+	}
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:3000
+}

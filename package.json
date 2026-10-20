@@ -1,0 +1,28 @@
+{
+  "name": "halloween2026",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DRC Halloween 2026 costume contest voting — brought to you by the DNP",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server.ts",
+    "dev": "node --disable-warning=ExperimentalWarning --env-file=.env --watch src/server.ts",
+    "test": "node --disable-warning=ExperimentalWarning --test --test-isolation=none test/*.test.ts",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.5",
+    "hono": "^4.13.13",
+    "nodemailer": "^10.1.7",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/nodemailer": "^8.0.2",
+    "typescript": "^7.0.2"
+  }
+}
