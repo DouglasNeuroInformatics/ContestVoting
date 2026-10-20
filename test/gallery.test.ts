@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { voteAudit } from "../src/admin.ts";
+import { setSetting } from "../src/db.ts";
 import { addEntry, login, post, setup } from "./helpers.ts";
 
 const ORIGIN = "https://halloween.test";
@@ -80,4 +81,15 @@ test("voting refused after close and for unapproved entries; counts never shown 
   assert.equal((await vote(ctx, cookie, a)).headers.get("location"), "/?e=voting_closed");
   const closed = await home(ctx, cookie);
   assert.doesNotMatch(closed, /action="\/vote"/);
+});
+
+test("results banner appears only once published", async () => {
+  const ctx = setup("2026-10-30T20:30:00Z"); // closed
+  const a = addEntry(ctx, "a@mcgill.ca", "Pumpkin King", "approved").id;
+  setSetting(ctx.db, "results_json", JSON.stringify([{ place: 1, id: a, name: "Pumpkin King", votes: 7 }]));
+  assert.doesNotMatch(await home(ctx), /class="panel winners"/);
+  setSetting(ctx.db, "results_published", "1");
+  const page = await home(ctx);
+  assert.match(page, /class="panel winners"/);
+  assert.match(page, new RegExp(`href="#e${a}">Pumpkin King</a> — 7 vote`));
 });

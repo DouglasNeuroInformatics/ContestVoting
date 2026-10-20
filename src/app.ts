@@ -121,6 +121,7 @@ export function createApp(deps: AuthDeps) {
         entries,
         votingOpen: votingOpen(phase),
         myVote: user ? myVote(db, user.email) : null,
+        results: phase === "results" ? getResults(db) : null,
         notice: c.req.query("voted") ? s.voted : undefined,
         error: err === "voting_closed" || err === "not_votable" ? errorText(lang, err) : undefined,
       }),

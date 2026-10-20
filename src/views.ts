@@ -1,6 +1,7 @@
 import { html } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import type { User } from "./auth.ts";
+import type { Results } from "./admin.ts";
 import type { Entry, GalleryEntry } from "./entries.ts";
 import { t, type Lang } from "./i18n.ts";
 
@@ -45,6 +46,9 @@ table { width:100%; border-collapse:collapse; font-size:.9rem; display:block; ov
 td, th { text-align:left; padding:6px 8px; border-bottom:1px solid #3a2d20; vertical-align:top; }
 .flag { display:inline-block; background:#4a3b12; color:#ffd77a; border-radius:6px; padding:0 6px; font-size:.8rem; }
 button.small { width:auto; margin:0; padding:4px 10px; font-size:.85rem; }
+.winners { border:2px solid var(--accent); }
+.winners ol { font-size:1.15rem; padding-left:1.4em; margin:8px 0 0; }
+.winners a { color:var(--text); font-weight:700; }
 .gallery { display:grid; gap:16px; }
 .card { background:var(--panel); border-radius:12px; padding:12px; }
 .card img.cover { width:100%; max-height:70vh; object-fit:cover; border-radius:8px; display:block; }
@@ -100,6 +104,7 @@ export function homePage(
     entries: GalleryEntry[];
     votingOpen: boolean;
     myVote: number | null;
+    results: Results | null;
     notice?: string;
     error?: string;
   },
@@ -113,6 +118,14 @@ export function homePage(
   return html`<h1>🎃 ${s.title}</h1>
 ${opts.notice ? html`<p class="notice" role="status">${opts.notice}</p>` : ""}
 ${opts.error ? html`<p class="error" role="alert">${opts.error}</p>` : ""}
+${opts.results
+    ? html`<div class="panel winners">
+  <h2>${s.winners}</h2>
+  <ol>${opts.results.map(
+    (r) => html`<li><a href="#e${r.id}">${r.name}</a> — ${s.votesCount.replace("{n}", String(r.votes))}</li>`,
+  )}</ol>
+</div>`
+    : ""}
 <div class="panel">
   <p><strong>${opts.phaseText}</strong></p>
   ${opts.user
