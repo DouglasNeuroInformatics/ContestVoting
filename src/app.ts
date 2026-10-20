@@ -27,6 +27,7 @@ import { detectLang, errorText, formatDateTime, t, type ErrorKey, type Lang } fr
 import { computePhase, isPhase, type Phase } from "./phase.ts";
 import { deletePhotoFiles, isPhotoName, MAX_PHOTO_BYTES, MAX_PHOTOS, processPhoto, storePhoto } from "./photos.ts";
 import { seededShuffle } from "./shuffle.ts";
+import { castVote, myVote, votingOpen } from "./votes.ts";
 import { entryPage, homePage, landingPage, layout, loginPage, verifyPage } from "./views.ts";
 
 type Env = {
@@ -108,11 +109,36 @@ export function createApp(deps: AuthDeps) {
     const phase = phaseNow();
     if (phase === "landing") return render(c, landingPage(lang, formatDateTime(cfg.openAt, lang, cfg.tz)));
     const text = { open: s.phaseOpen, voting: s.phaseVoting, closed: s.phaseClosed, results: s.phaseResults }[phase];
+    const user = c.get("user");
     const entries = seededShuffle(listApproved(db), c.get("deviceId"));
+    const err = c.req.query("e");
     return render(
       c,
-      homePage(lang, { phaseText: text, user: c.get("user"), showEntryLink: phase === "open" || phase === "voting", entries }),
+      homePage(lang, {
+        phaseText: text,
+        user,
+        showEntryLink: votingOpen(phase),
+        entries,
+        votingOpen: votingOpen(phase),
+        myVote: user ? myVote(db, user.email) : null,
+        notice: c.req.query("voted") ? s.voted : undefined,
+        error: err === "voting_closed" || err === "not_votable" ? errorText(lang, err) : undefined,
+      }),
     );
+  });
+
+  app.post("/vote", async (c) => {
+    const user = c.get("user");
+    if (!user) return c.redirect("/login");
+    const form = await c.req.parseBody();
+    const entryId = Number(form.entry);
+    const res = castVote(db, phaseNow(), user.email, entryId, {
+      deviceId: c.get("deviceId"),
+      ip: c.get("ip"),
+      ua: c.req.header("user-agent") ?? "",
+      now: deps.now().getTime(),
+    });
+    return c.redirect(res.ok ? `/?voted=1#e${entryId}` : `/?e=${res.reason}`);
   });
 
   app.get("/login", (c) => (c.get("user") ? c.redirect("/") : render(c, loginPage(c.get("lang")))));

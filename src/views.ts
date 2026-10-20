@@ -93,15 +93,31 @@ export function landingPage(lang: Lang, opensAt: string): Body {
 
 export function homePage(
   lang: Lang,
-  opts: { phaseText: string; user: User | null; showEntryLink: boolean; entries: GalleryEntry[] },
+  opts: {
+    phaseText: string;
+    user: User | null;
+    showEntryLink: boolean;
+    entries: GalleryEntry[];
+    votingOpen: boolean;
+    myVote: number | null;
+    notice?: string;
+    error?: string;
+  },
 ): Body {
   const s = t(lang);
+  const voteControl = (id: number) => {
+    if (!opts.votingOpen || !opts.user) return "";
+    if (opts.myVote === id) return html`<p class="badge approved">${s.yourVote}</p>`;
+    return html`<form method="post" action="/vote"><input type="hidden" name="entry" value="${id}"><button type="submit">${opts.myVote ? s.changeVote : s.vote}</button></form>`;
+  };
   return html`<h1>🎃 ${s.title}</h1>
+${opts.notice ? html`<p class="notice" role="status">${opts.notice}</p>` : ""}
+${opts.error ? html`<p class="error" role="alert">${opts.error}</p>` : ""}
 <div class="panel">
   <p><strong>${opts.phaseText}</strong></p>
   ${opts.user
     ? opts.showEntryLink ? html`<p><a href="/me/entry">${s.myEntry}</a></p>` : ""
-    : html`<p><a href="/login">${s.login}</a></p>`}
+    : html`${opts.votingOpen ? html`<p>${s.loginToVote}</p>` : ""}<p><a href="/login">${s.login}</a></p>`}
 </div>
 ${opts.entries.length === 0
     ? html`<p class="help">${s.galleryEmpty}</p>`
@@ -113,6 +129,7 @@ ${opts.entries.length === 0
     : ""}
   <h2>${e.name}</h2>
   ${e.caption ? html`<p>${e.caption}</p>` : ""}
+  ${voteControl(e.id)}
 </article>`,
       )}</div>`}`;
 }

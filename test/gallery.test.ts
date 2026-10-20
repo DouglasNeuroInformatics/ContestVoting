@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { addEntry, setup } from "./helpers.ts";
+import { voteAudit } from "../src/admin.ts";
+import { addEntry, login, post, setup } from "./helpers.ts";
 
 const ORIGIN = "https://halloween.test";
 const home = async (ctx: ReturnType<typeof setup>, cookie = "did=viewer-aaaaaaaaaaaaaaaa") =>
@@ -39,4 +40,44 @@ test("order is stable per viewer and differs across viewers", async () => {
 test("empty gallery shows a friendly message", async () => {
   const ctx = setup();
   assert.match(await home(ctx), /No costumes yet|Aucun costume/);
+});
+
+const vote = (ctx: ReturnType<typeof setup>, cookie: string, entry: number) =>
+  ctx.app.request(post("/vote", { entry: String(entry) }, { cookie }));
+
+test("vote flow: anonymous is sent to login; vote, see it marked, change it", async () => {
+  const ctx = setup();
+  const a = addEntry(ctx, "a@mcgill.ca", "Witch", "approved").id;
+  const b = addEntry(ctx, "b@mcgill.ca", "Wizard", "approved").id;
+
+  assert.equal((await vote(ctx, "", a)).headers.get("location"), "/login");
+  assert.match(await home(ctx), /Log in with your institutional email to vote|Connectez-vous avec votre courriel institutionnel/);
+
+  const cookie = await login(ctx, "voter@mcgill.ca");
+  const res = await vote(ctx, cookie, a);
+  assert.equal(res.headers.get("location"), `/?voted=1#e${a}`);
+  const page = await home(ctx, cookie);
+  assert.match(page, new RegExp(`id="e${a}"[\\s\\S]*?(Your vote|Votre vote)[\\s\\S]*?</article>`));
+
+  await vote(ctx, cookie, b);
+  const audit = voteAudit(ctx.db);
+  assert.equal(audit.length, 1);
+  assert.equal(audit[0].entryId, b);
+  assert.ok(audit[0].deviceId, "device recorded for the audit");
+});
+
+test("voting refused after close and for unapproved entries; counts never shown publicly", async () => {
+  const ctx = setup();
+  const a = addEntry(ctx, "a@mcgill.ca", "Witch", "approved").id;
+  const p = addEntry(ctx, "p@mcgill.ca", "Pending", "pending").id;
+  const cookie = await login(ctx, "voter@mcgill.ca");
+
+  assert.equal((await vote(ctx, cookie, p)).headers.get("location"), "/?e=not_votable");
+  await vote(ctx, cookie, a);
+  assert.doesNotMatch(await home(ctx, cookie), /\b1 vote|\(1\)/);
+
+  ctx.clock.now = new Date("2026-10-30T20:30:00Z"); // 16:30 → closed
+  assert.equal((await vote(ctx, cookie, a)).headers.get("location"), "/?e=voting_closed");
+  const closed = await home(ctx, cookie);
+  assert.doesNotMatch(closed, /action="\/vote"/);
 });
