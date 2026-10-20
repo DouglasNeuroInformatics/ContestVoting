@@ -3,7 +3,7 @@
 Spec, settled 2026-10-20. Brought to you by the DNP.
 
 - URL: `https://halloween2026.douglasneuroinformatics.ca/`
-- Contest: Thursday 2026-10-30, times in `America/Montreal`
+- Contest: Friday 2026-10-30, times in `America/Montreal`
 - Scale: < 100 voters, < 100 entries
 - Replaces woobox (cost, US-hosted)
 
@@ -13,7 +13,7 @@ One URL (the poster QR code) serves every phase. The phase is computed from the 
 
 | Phase | When | Public sees |
 |---|---|---|
-| `landing` | until 10-30 08:00 | Rules, how it works, dates, countdown. No login. |
+| `landing` | until 10-30 08:00 | Rules, how it works, opening date. No login. |
 | `open` | 08:00 – 14:00 | Gallery + vote; submit / edit / withdraw own entry |
 | `voting` | 14:00 – 16:00 | Gallery + vote; submissions closed |
 | `closed` | 16:00 → results published | Gallery, "voting closed, results soon" |

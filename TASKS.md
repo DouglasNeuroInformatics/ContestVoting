@@ -46,12 +46,16 @@ Ordered by the critical path. The deliverability test gates everything else.
 
 ## T5 — Public pages (by 10-26)
 
-- [ ] Landing: rules (Markdown FR/EN), dates, countdown, contact for removal.
-- [ ] Gallery: approved entries, per-session seeded shuffle, lightbox, vote / change vote.
-- [ ] Closed + results views.
-- [ ] i18n: Accept-Language → FR fallback; toggle cookie; all strings + emails.
-- [ ] Theme + DNP footer + DRC header logo. Test on iPhone Safari + Android Chrome.
-- [ ] Security headers, CSRF origin check, noindex.
+- [x] Landing: rules from `content/rules.{fr,en}.md` (placeholder text until the organizers send theirs), opening date. No countdown (would need JS; the date is enough).
+- [ ] Landing: contact for photo removal requests (needs an address from the organizers).
+- [x] Gallery: approved entries, per-viewer seeded shuffle, tap a photo to open it full size, vote / change vote.
+- [x] Closed + results views (results banner with snapshotted counts).
+- [x] i18n: Accept-Language → FR fallback; toggle cookie; all strings + emails.
+- [x] Theme + "Brought to you by the DNP" footer text.
+- [ ] DNP logo in the footer; DRC logo in the header if supplied.
+- [ ] Organizers' extra entry fields (name / research group / PI …) once they send the list.
+- [ ] Test on iPhone Safari + Android Chrome.
+- [x] Security headers, CSRF origin check, noindex.
 
 ## T6 — Dry run (10-27, go/no-go)
 

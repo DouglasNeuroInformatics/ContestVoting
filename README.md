@@ -37,6 +37,13 @@ docker compose up -d --build
 Add `deploy/Caddyfile` to the server's Caddy config and reload Caddy. The app
 listens on `127.0.0.1:3000` only; Caddy terminates TLS.
 
+## Rules text
+
+The landing page and `/rules` render `content/rules.fr.md` and
+`content/rules.en.md` (headings, paragraphs, lists, **bold**, *italic*,
+links). Compose mounts `content/` read-only, so editing these files on the
+server updates the site on the next page load — no rebuild.
+
 ## Deliverability test
 
 Before the contest, check that the login emails reach institutional inboxes:
