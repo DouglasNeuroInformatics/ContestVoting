@@ -1,38 +1,13 @@
 import assert from "node:assert/strict";
-import { existsSync, writeFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { ranking, sendAdminAlerts, voteAudit } from "../src/admin.ts";
 import { getSetting } from "../src/db.ts";
-import { login, post, setup, type Ctx } from "./helpers.ts";
+import { addEntry, addVote, login, post, setup, type Ctx } from "./helpers.ts";
 
 const ORIGIN = "https://halloween.test";
 const ADMIN = "admin@example.org";
-
-let photoSeq = 0;
-/** Insert an entry directly (upload path is covered in entries.test.ts). */
-function addEntry(ctx: Ctx, owner: string, name: string, status = "pending") {
-  const now = ctx.clock.now.getTime();
-  const id = Number(
-    ctx.db
-      .prepare(
-        "INSERT INTO entries (owner_email, name, caption, status, consent_at, created_at, updated_at) VALUES (?, ?, '', ?, ?, ?, ?)",
-      )
-      .run(owner, name, status, now, now, now).lastInsertRowid,
-  );
-  const base = String(++photoSeq).padStart(32, "0");
-  const photo = { file: `${base}.webp`, thumb: `${base}_t.webp` };
-  writeFileSync(join(ctx.photosDir, photo.file), "x");
-  writeFileSync(join(ctx.photosDir, photo.thumb), "x");
-  ctx.db.prepare("INSERT INTO photos (entry_id, position, file, thumb) VALUES (?, 0, ?, ?)").run(id, photo.file, photo.thumb);
-  return { id, photo };
-}
-
-function addVote(ctx: Ctx, voter: string, entryId: number, opts: { device?: string; ip?: string; at?: number } = {}) {
-  ctx.db
-    .prepare("INSERT INTO votes (voter_email, entry_id, device_id, ip, ua, updated_at) VALUES (?, ?, ?, ?, 'ua', ?)")
-    .run(voter, entryId, opts.device ?? `dev-${voter}`, opts.ip ?? `ip-${voter}`, opts.at ?? ctx.clock.now.getTime());
-}
 
 const status = (ctx: Ctx, id: number) =>
   (ctx.db.prepare("SELECT status FROM entries WHERE id = ?").get(id) as { status: string } | undefined)?.status;
