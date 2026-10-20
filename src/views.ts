@@ -36,6 +36,15 @@ button.danger { background:transparent; color:var(--danger); border:1px solid va
 .badge.rejected { background:#4a1717; color:#ff9e9e; }
 .thumbs { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
 .thumbs img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:8px; display:block; }
+nav.admin { display:flex; gap:16px; flex-wrap:wrap; margin:16px 0; }
+nav.admin a { color:var(--muted); }
+nav.admin a.current { color:var(--accent); font-weight:700; }
+nav.admin + * { margin-top:0; }
+select { width:100%; font-size:1rem; padding:10px; border-radius:8px; border:1px solid #5a4632; background:#0e0b08; color:var(--text); }
+table { width:100%; border-collapse:collapse; font-size:.9rem; display:block; overflow-x:auto; }
+td, th { text-align:left; padding:6px 8px; border-bottom:1px solid #3a2d20; vertical-align:top; }
+.flag { display:inline-block; background:#4a3b12; color:#ffd77a; border-radius:6px; padding:0 6px; font-size:.8rem; }
+button.small { width:auto; margin:0; padding:4px 10px; font-size:.85rem; }
 footer { color:var(--muted); font-size:.85rem; text-align:center; margin:40px 0 16px; }
 `;
 
@@ -54,7 +63,7 @@ export function layout(lang: Lang, user: User | null, body: Body): Body {
 <body>
 <div class="wrap">
 <header>
-  <a href="/lang/${other}">${s.switchLang}</a>
+  <span><a href="/lang/${other}">${s.switchLang}</a>${user?.isAdmin ? html` · <a href="/admin">Admin</a>` : ""}</span>
   ${user
     ? html`<form method="post" action="/logout" style="margin:0">
         <span class="help">${s.loggedInAs} ${user.email}</span>

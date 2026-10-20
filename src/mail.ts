@@ -28,6 +28,45 @@ export function createMailer(cfg: Config): Mailer {
   };
 }
 
+const SIGNATURE = [
+  `— Concours de costumes d'Halloween du CRD / DRC Halloween costume contest`,
+  `Propulsé par / Brought to you by the DNP`,
+];
+
+export function rejectionEmail(to: string, entryName: string, reason: string | null, baseUrl: string): Mail {
+  const url = `${baseUrl}/me/entry`;
+  return {
+    to,
+    subject: `Inscription refusée / Entry not approved — ${entryName}`,
+    text: [
+      `Votre inscription « ${entryName} » n'a pas été approuvée.`,
+      ...(reason ? [`Raison : ${reason}`] : []),
+      `Vous pouvez la modifier et la soumettre de nouveau : ${url}`,
+      ``,
+      `Your entry "${entryName}" was not approved.`,
+      ...(reason ? [`Reason: ${reason}`] : []),
+      `You can edit it and submit it again: ${url}`,
+      ``,
+      ...SIGNATURE,
+    ].join("\n"),
+  };
+}
+
+export function adminAlertEmail(to: string, newEntries: string[], pendingTotal: number, baseUrl: string): Mail {
+  const list = newEntries.map((n) => `  • ${n}`).join("\n");
+  return {
+    to,
+    subject: `[Halloween] ${pendingTotal} en attente / pending`,
+    text: [
+      `Nouvelles inscriptions à approuver / New entries to review:`,
+      list,
+      ``,
+      `Total en attente / pending: ${pendingTotal}`,
+      `${baseUrl}/admin`,
+    ].join("\n"),
+  };
+}
+
 /** Bilingual on purpose: we don't know the recipient's language before they log in. */
 export function codeEmail(to: string, code: string, baseUrl: string): Mail {
   const host = new URL(baseUrl).host;
@@ -41,8 +80,7 @@ export function codeEmail(to: string, code: string, baseUrl: string): Mail {
       `Your login code for ${host}: ${code}`,
       `It expires in 10 minutes. If you didn't ask for it, ignore this email.`,
       ``,
-      `— Concours de costumes d'Halloween du CRD / DRC Halloween costume contest`,
-      `Propulsé par / Brought to you by the DNP`,
+      ...SIGNATURE,
     ].join("\n"),
   };
 }

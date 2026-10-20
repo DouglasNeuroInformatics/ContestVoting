@@ -36,12 +36,13 @@ Ordered by the critical path. The deliverability test gates everything else.
 
 ## T4 — Admin (by 10-25)
 
-- [ ] Admin allowlist + guard.
-- [ ] Queue: approve / reject (+ reason → email to submitter).
-- [ ] Entries list + remove.
-- [ ] Votes: live counts, voter list, device/IP flags, void a vote.
-- [ ] Settings: phase override, extra domains, publish results (top 3 + tie handling).
-- [ ] `admin_log` on every action; batched 10-min admin alert mail.
+- [x] Admin allowlist + guard (anon → login, non-admin → 404).
+- [x] Queue: approve / reject (+ reason → bilingual email to submitter). Rejecting an approved entry voids its votes.
+- [x] Entries list + remove (confirm checkbox; deletes photos + votes).
+- [x] Votes: live ranking with ties marked, voter list with shared-device / IP-burst flags, void a vote.
+- [x] Settings: phase override, extra domains, publish results (admins pick order = tie-break; counts snapshotted), unpublish.
+- [x] `admin_log` on every action, shown on Settings; batched alert mail (≤ 1 per 10 min, new pending only).
+- [ ] Bilingual admin UI done; real-phone check of the queue at the dry run.
 
 ## T5 — Public pages (by 10-26)
 
