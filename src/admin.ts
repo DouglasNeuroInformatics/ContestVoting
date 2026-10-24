@@ -179,9 +179,12 @@ export function voidVote(deps: AuthDeps, admin: string, voterEmail: string, cate
 
 // ---- Results ----------------------------------------------------------------
 
-export type Ranked = { id: number; name: string; votes: number; tied: boolean };
+export type Ranked = { id: number; name: string; votes: number; rank: number; tied: boolean };
 
-/** Approved entries of one category by votes; `tied` marks entries sharing a count with a neighbour. */
+/**
+ * Approved entries of one category by votes. Tied entries share a rank (1, 1, 3…);
+ * `tied` marks entries sharing a non-zero count, since a tie at zero decides nothing.
+ */
 export function ranking(db: Db, category: Category): Ranked[] {
   const rows = db
     .prepare(
@@ -193,7 +196,8 @@ export function ranking(db: Db, category: Category): Ranked[] {
     .all(category) as { id: number; name: string; votes: number }[];
   return rows.map((r, i) => ({
     ...r,
-    tied: rows[i - 1]?.votes === r.votes || rows[i + 1]?.votes === r.votes,
+    rank: 1 + rows.findIndex((o) => o.votes === r.votes),
+    tied: r.votes > 0 && (rows[i - 1]?.votes === r.votes || rows[i + 1]?.votes === r.votes),
   }));
 }
 

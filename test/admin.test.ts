@@ -104,11 +104,13 @@ test("vote audit flags shared devices and IP bursts; void removes a vote", async
   assert.ok(!voteAudit(ctx.db).some((v) => v.voterEmail === "b@mcgill.ca"));
 });
 
-test("ranking is per category, counts only approved entries and marks ties", () => {
+test("ranking is per category, counts only approved entries; ties share a rank, ties at zero are not flagged", () => {
   const ctx = setup();
   const a = addEntry(ctx, "a@mcgill.ca", "A", "approved").id;
   const b = addEntry(ctx, "b@mcgill.ca", "B", "approved").id;
   const c = addEntry(ctx, "c@mcgill.ca", "C", "approved").id;
+  addEntry(ctx, "e@mcgill.ca", "E", "approved");
+  addEntry(ctx, "f@mcgill.ca", "F", "approved");
   const g = addEntry(ctx, "g@mcgill.ca", "G", "approved", "group").id;
   addEntry(ctx, "d@mcgill.ca", "D pending");
   addVote(ctx, "1@mcgill.ca", a);
@@ -117,11 +119,13 @@ test("ranking is per category, counts only approved entries and marks ties", () 
   addVote(ctx, "4@mcgill.ca", c);
   addVote(ctx, "1@mcgill.ca", g);
   assert.deepEqual(
-    ranking(ctx.db, "individual").map((r) => [r.name, r.votes, r.tied]),
+    ranking(ctx.db, "individual").map((r) => [r.rank, r.name, r.votes, r.tied]),
     [
-      ["A", 2, false],
-      ["B", 1, true],
-      ["C", 1, true],
+      [1, "A", 2, false],
+      [2, "B", 1, true],
+      [2, "C", 1, true],
+      [4, "E", 0, false],
+      [4, "F", 0, false],
     ],
   );
   assert.deepEqual(ranking(ctx.db, "group").map((r) => [r.name, r.votes]), [["G", 1]]);

@@ -82,7 +82,7 @@ function rankingTable(lang: Lang, category: Category, ranked: Ranked[]): Body {
 <table>
   <tr><th>#</th><th>${a.entry}</th><th>${a.votes}</th></tr>
   ${ranked.map(
-    (r, i) => html`<tr><td>${i + 1}</td><td>${r.name}${r.tied ? html` <span class="flag">${a.tied}</span>` : ""}</td><td>${r.votes}</td></tr>`,
+    (r) => html`<tr><td>${r.rank}</td><td>${r.name}${r.tied ? html` <span class="flag">${a.tied}</span>` : ""}</td><td>${r.votes}</td></tr>`,
   )}
 </table>`;
 }
