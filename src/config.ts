@@ -14,6 +14,8 @@ export type Config = {
   adminEmails: string[];
   /** Non-admins allowed to log in before the contest opens (deliverability testing). */
   previewEmails: string[];
+  /** Minimum gap between "entries to review" emails to admins; 0 = never send them. */
+  adminAlertMinutes: number;
   mailTransport: "smtp" | "console";
   smtp: { host: string; port: number; user: string; pass: string } | null;
   mailFrom: string;
@@ -67,6 +69,11 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   const adminEmails = list(env.ADMIN_EMAILS);
   if (adminEmails.length === 0) errors.push("ADMIN_EMAILS is required");
 
+  const adminAlertMinutes = Number(env.ADMIN_ALERT_MINUTES?.trim() || 30);
+  if (!Number.isInteger(adminAlertMinutes) || adminAlertMinutes < 0) {
+    errors.push("ADMIN_ALERT_MINUTES must be a whole number of minutes (0 = off)");
+  }
+
   const mailTransport = env.MAIL_TRANSPORT === "console" ? "console" : "smtp";
   let smtp: Config["smtp"] = null;
   if (mailTransport === "smtp") {
@@ -105,6 +112,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     allowedDomains,
     adminEmails,
     previewEmails: list(env.PREVIEW_EMAILS),
+    adminAlertMinutes,
     mailTransport,
     smtp,
     mailFrom: env.MAIL_FROM?.trim() || "Halloween DRC <noreply@halloween2026.douglasneuroinformatics.ca>",

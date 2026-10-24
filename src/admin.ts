@@ -4,7 +4,6 @@ import { CATEGORIES, type Category, type EntryStatus } from "./entries.ts";
 import { adminAlertEmail, rejectionEmail } from "./mail.ts";
 
 export const REASON_MAX = 200;
-export const ALERT_INTERVAL_MS = 10 * 60_000;
 const BURST_WINDOW_MS = 10 * 60_000;
 const BURST_MIN_VOTES = 5;
 
@@ -251,13 +250,15 @@ export function setExtraDomains(deps: AuthDeps, admin: string, raw: string): str
 // ---- Batched admin alerts ---------------------------------------------------
 
 /**
- * Called every minute by the server. Sends at most one email per ALERT_INTERVAL_MS,
+ * Called every minute by the server. Sends at most one email per ADMIN_ALERT_MINUTES (0 = off),
  * listing entries that became pending since the last alert.
  */
 export async function sendAdminAlerts(deps: AuthDeps): Promise<number> {
+  const minutes = deps.cfg.adminAlertMinutes;
+  if (minutes === 0) return 0;
   const now = deps.now().getTime();
   const last = Number(getSetting(deps.db, "admin_alert_at") ?? 0);
-  if (now - last < ALERT_INTERVAL_MS) return 0;
+  if (now - last < minutes * 60_000) return 0;
   const fresh = deps.db
     .prepare("SELECT name FROM entries WHERE status = 'pending' AND updated_at > ? ORDER BY updated_at")
     .all(last) as { name: string }[];

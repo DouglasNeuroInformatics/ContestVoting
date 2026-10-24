@@ -75,7 +75,7 @@ Times live in config (`.env`), not code.
   - **Votes**: live counts per entry; voter list (email, time, ip, ua) with flags: many emails from the same device cookie or IP within a short window. Void a vote.
   - **Settings**: phase override, extra allowed domains, Publish results.
 - Every admin action → `admin_log` (who, what, target, when).
-- New pending entries → batched email to admins at most every 10 min.
+- New pending entries → batched email to admins at most every `ADMIN_ALERT_MINUTES` (default 30; 0 = off).
 - Ties for top 3: shown to the admins, who decide manually; Publish takes the final ordering.
 
 ## 8. Privacy (Québec Law 25)

@@ -179,7 +179,7 @@ test("phase override set and cleared; extra domains validated", async () => {
   assert.deepEqual(log.map((l) => l.action), ["phase_override", "phase_override", "set_domains"]);
 });
 
-test("admin alerts are batched: at most one email per admin per 10 min, only for new pending entries", async () => {
+test("admin alerts are batched: at most one email per admin per 30 min by default, only for new pending entries", async () => {
   const ctx = setup();
   ctx.sent.length = 0;
   assert.equal(await sendAdminAlerts(ctx.deps), 0, "nothing pending");
@@ -191,15 +191,32 @@ test("admin alerts are batched: at most one email per admin per 10 min, only for
 
   ctx.advance(60_000);
   addEntry(ctx, "b@mcgill.ca", "Second");
-  assert.equal(await sendAdminAlerts(ctx.deps), 0, "inside the 10-min window");
+  assert.equal(await sendAdminAlerts(ctx.deps), 0, "inside the 30-min window");
 
-  ctx.advance(10 * 60_000);
+  ctx.advance(30 * 60_000);
   assert.equal(await sendAdminAlerts(ctx.deps), 1);
   assert.match(ctx.sent[1].text, /Second/);
   assert.doesNotMatch(ctx.sent[1].text, /First/);
 
-  ctx.advance(10 * 60_000);
+  ctx.advance(30 * 60_000);
   assert.equal(await sendAdminAlerts(ctx.deps), 0, "nothing new");
+});
+
+test("ADMIN_ALERT_MINUTES sets the gap; 0 turns alerts off", async () => {
+  const every5 = setup(undefined, { ADMIN_ALERT_MINUTES: "5" });
+  addEntry(every5, "a@mcgill.ca", "First");
+  assert.equal(await sendAdminAlerts(every5.deps), 1);
+  every5.advance(5 * 60_000);
+  addEntry(every5, "b@mcgill.ca", "Second");
+  assert.equal(await sendAdminAlerts(every5.deps), 1);
+
+  const off = setup(undefined, { ADMIN_ALERT_MINUTES: "0" });
+  off.sent.length = 0;
+  addEntry(off, "a@mcgill.ca", "First");
+  assert.equal(await sendAdminAlerts(off.deps), 0);
+  assert.equal(off.sent.length, 0);
+
+  assert.throws(() => setup(undefined, { ADMIN_ALERT_MINUTES: "-1" }), /ADMIN_ALERT_MINUTES/);
 });
 
 test("backup code: admin issues a code on screen, it logs the person in, the log never holds the code", async () => {

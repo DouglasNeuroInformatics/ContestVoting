@@ -141,6 +141,13 @@ in `docker compose logs app` as `dev login refused`. To turn it off, empty
 | Update to new code | `git pull && docker compose up -d --build` |
 | Change a setting | edit `.env`, then `docker compose up -d` |
 
+Settings admins may ask to change:
+
+- `ADMIN_ALERT_MINUTES`: admins get an "entries to review" email at most
+  this often while entries wait for approval (default 30; `0` = off).
+- `ADMIN_EMAILS`, `PREVIEW_EMAILS`: who can manage the contest / log in
+  before it opens.
+
 The container restarts by itself after a reboot (`restart: unless-stopped`).
 Data lives in `./data` only. There are no backups; that's accepted for a
 one-week event.
